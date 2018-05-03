@@ -4,8 +4,8 @@ RUN apk update \
   && apk add curl bash \
   && rm /var/cache/apk/*
 
-COPY test_rollout.sh /root
-RUN chmod +x /root/test_rollout.sh
+COPY rollout.sh /root
+RUN chmod +x /root/rollout.sh
 
 ENV PLUGIN_KIND=deployment
 ENV PLUGIN_OBJECT=""
