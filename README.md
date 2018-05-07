@@ -1,6 +1,6 @@
 # drone_k8s_rollout
 
-## Descrpition
+## Descrption
 
 Drone.io plugin to perform secure releases to Kubernetes.
 
