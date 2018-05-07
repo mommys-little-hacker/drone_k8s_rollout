@@ -2,7 +2,7 @@
 # This script updates image(s) for deployment/statefulset/daemonset and
 # checks if it is successful and rolls it back if it fails
 
-set -ux
+set -u
 
 conf_dir=$HOME/.k8s-ca
 
@@ -13,9 +13,9 @@ k8s_ca="${PLUGIN_CA}"
 
 k8s_kind="${PLUGIN_KIND}"
 k8s_object="${PLUGIN_OBJECT}"
-k8s_imgs=(${PLUGIN_IMGS[@]})
-k8s_cnts=(${PLUGIN_CNTS[@]})
-k8s_tags=(${PLUGIN_TAGS[@]-latest})
+k8s_imgs=(${PLUGIN_IMG_NAMES//,/" "})
+k8s_cnts=(${PLUGIN_IMG_CNTS//,/" "})
+k8s_tags=(${PLUGIN_IMG_TAGS//,/" "})
 
 E_BAD_ARGS=13
 E_FAILED=20
@@ -40,12 +40,13 @@ updateImage() {
     i=0
     update_cmd="kubectl set image $k8s_kind $k8s_object"
 
-    until [[ $i=${#k8s_cnts[@]} ]]
+    until [[ $i = ${#k8s_cnts[@]} ]]
     do
-        update_cmd="$update_cmd ${k8s_cnts[$i]}=${k8s_imgs[$i]}:${k8s_tags[$i]}"
+        update_cmd="$update_cmd ${k8s_cnts[$i]}=${k8s_imgs[$i]}:${k8s_tags[$i]-latest}"
+        let i++
     done
 
-    update_cmd
+    $update_cmd
 }
 
 # Watch release status
