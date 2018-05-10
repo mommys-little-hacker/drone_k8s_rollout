@@ -7,15 +7,15 @@ RUN apk update \
   && rm /var/cache/apk/* \
   && chmod +x /root/rollout.sh
 
-ENV PLUGIN_KIND="deployment"
-ENV PLUGIN_OBJECT=""
-ENV PLUGIN_IMG_NAMES=""
-ENV PLUGIN_IMG_CNTS=""
-ENV PLUGIN_IMG_TAGS=""
-
-ENV PLUGIN_CA=""
-ENV PLUGIN_TOKEN=""
-ENV PLUGIN_ADDR=""
-ENV PLUGIN_USER="admin"
+ENV PLUGIN_KIND="deployment" \
+  PLUGIN_OBJECT="" \
+  PLUGIN_NAMESPACE="default" \
+  PLUGIN_IMG_NAMES="" \
+  PLUGIN_IMG_CNTS="" \
+  PLUGIN_IMG_TAGS="" \
+  PLUGIN_CA="" \
+  PLUGIN_TOKEN="" \
+  PLUGIN_ADDR="" \
+  PLUGIN_USER="admin"
 
 ENTRYPOINT [ "bash", "/root/rollout.sh" ]

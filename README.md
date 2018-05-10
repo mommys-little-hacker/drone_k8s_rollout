@@ -22,6 +22,7 @@ How it works:
 * img_cnts - array of containers in k8s object to be updated;
 * img_names - array of container images to use. Must match the order of img_cnts;
 * img_tags - array of tags of images for update. Order must match with img_names;
+* namespace - k8s namespace
 
 ## Example
 
@@ -33,6 +34,7 @@ The following example updates with fresh images the website deployment with 2 co
     user: admin
     token: 32tx2u6Y1rlD2sHcpxstCmP1m4taE1fb
     addr: https://api.k8s.example.com
+    namespace: default
     kind: deployment
     object: website
     img_cnts:
@@ -50,8 +52,9 @@ The following example updates with fresh images the website deployment with 2 co
 This step translates into following commands (without authentication):
 
 ```
-kubectl set image deployment website dynamic=httpd:2.4.33 static=nginx:1.13.12
-kubectl rollout status deployment website --wait || kubectl rollout undo deployment website
+kubectl set image deployment website dynamic=httpd:2.4.33 static=nginx:1.13.12 --namespace=$k8s_ns
+kubectl rollout status deployment website --wait --namespace=$k8s_ns \
+  || kubectl rollout undo deployment website --namespace=$k8s_ns
 ```
 
 ## Considerations

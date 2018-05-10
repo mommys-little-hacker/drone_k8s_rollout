@@ -13,6 +13,7 @@ k8s_ca="${PLUGIN_CA}"
 
 k8s_kind="${PLUGIN_KIND}"
 k8s_object="${PLUGIN_OBJECT}"
+k8s_ns="${PLUGIN_NAMESPACE}"
 k8s_imgs=(${PLUGIN_IMG_NAMES//,/" "})
 k8s_cnts=(${PLUGIN_IMG_CNTS//,/" "})
 k8s_tags=(${PLUGIN_IMG_TAGS//,/" "})
@@ -38,7 +39,7 @@ clusterAuth() {
 # Update image of k8s object
 updateImage() {
     i=0
-    update_cmd="kubectl set image $k8s_kind $k8s_object"
+    update_cmd="kubectl set image $k8s_kind $k8s_object --namespace=$k8s_ns"
 
     until [[ $i = ${#k8s_cnts[@]} ]]
     do
@@ -51,12 +52,12 @@ updateImage() {
 
 # Watch release status
 releaseWatch() {
-    kubectl rollout status $k8s_kind $k8s_object -w
+    kubectl rollout status $k8s_kind $k8s_object --namespace=$k8s_ns -w
 }
 
 # Rollback a release
 releaseRollBack() {
-    kubectl rollout undo $k8s_kind $k8s_object
+    kubectl rollout undo $k8s_kind $k8s_object --namespace=$k8s_ns
 }
 
 ###
