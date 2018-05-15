@@ -6,14 +6,14 @@ set -u
 
 conf_dir=$HOME/.k8s-ca
 
-k8s_addr="${PLUGIN_ADDR}"
-k8s_user="${PLUGIN_USER}"
-k8s_pass="${PLUGIN_TOKEN}"
-k8s_ca="${PLUGIN_CA}"
+k8s_addr=${PLUGIN_ADDR}
+k8s_user=${PLUGIN_USER}
+k8s_pass=${PLUGIN_TOKEN}
+k8s_ca=${PLUGIN_CA}
 
-k8s_kind="${PLUGIN_KIND}"
-k8s_object="${PLUGIN_OBJECT}"
-k8s_ns="${PLUGIN_NAMESPACE}"
+k8s_kind=${PLUGIN_KIND}
+k8s_object=${PLUGIN_OBJECT}
+k8s_ns=${PLUGIN_NAMESPACE}
 k8s_imgs=(${PLUGIN_IMG_NAMES//,/" "})
 k8s_cnts=(${PLUGIN_IMG_CNTS//,/" "})
 k8s_tags=(${PLUGIN_IMG_TAGS//,/" "})
@@ -64,6 +64,7 @@ releaseRollBack() {
 # main()
 ###
 
+if [[ ${PLUGIN_DEBUG} = true ]]; then set -x; fi
 if [[ ${#k8s_imgs[@]} != ${#k8s_cnts[@]} ]]; then exit $E_BAD_ARGS; fi
 if [[ ${#k8s_tags[@]} != ${#k8s_imgs[@]} && ${#k8s_tags[@]} != 1 ]]; then exit $E_BAD_ARGS; fi
 

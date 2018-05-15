@@ -16,6 +16,7 @@ ENV PLUGIN_KIND="deployment" \
   PLUGIN_CA="" \
   PLUGIN_TOKEN="" \
   PLUGIN_ADDR="" \
-  PLUGIN_USER="admin"
+  PLUGIN_USER="admin" \
+  PLUGIN_DEBUG=false
 
 ENTRYPOINT [ "bash", "/root/rollout.sh" ]
