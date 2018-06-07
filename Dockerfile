@@ -13,10 +13,9 @@ ENV PLUGIN_KIND="deployment" \
   PLUGIN_IMG_NAMES="" \
   PLUGIN_IMG_CNTS="" \
   PLUGIN_IMG_TAGS="" \
-  PLUGIN_CA="" \
-  PLUGIN_TOKEN="" \
-  PLUGIN_ADDR="" \
   PLUGIN_USER="admin" \
-  PLUGIN_DEBUG=false
+  PLUGIN_DEBUG=false \
+  PLUGIN_REVERT_IF_FAIL=true \
+  PLUGIN_LOGS_IF_FAIL=true \
 
 ENTRYPOINT [ "bash", "/root/rollout.sh" ]

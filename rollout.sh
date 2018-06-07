@@ -6,10 +6,10 @@ set -u
 
 conf_dir=$HOME/.k8s-ca
 
-k8s_addr=${PLUGIN_ADDR}
-k8s_user=${PLUGIN_USER}
-k8s_pass=${PLUGIN_TOKEN}
-k8s_ca=${PLUGIN_CA}
+k8s_addr=${PLUGIN_ADDR-$K8S_ADDR}
+k8s_user=${PLUGIN_USER-$K8S_USER}
+k8s_pass=${PLUGIN_TOKEN-$K8S_TOKEN}
+k8s_ca=${PLUGIN_CA-$K8S_CA}
 
 k8s_kind=${PLUGIN_KIND}
 k8s_object=${PLUGIN_OBJECT}
@@ -17,6 +17,10 @@ k8s_ns=${PLUGIN_NAMESPACE}
 k8s_imgs=(${PLUGIN_IMG_NAMES//,/" "})
 k8s_cnts=(${PLUGIN_IMG_CNTS//,/" "})
 k8s_tags=(${PLUGIN_IMG_TAGS//,/" "})
+
+opt_debug=${PLUGIN_DEBUG}
+opt_revert=${PLUGIN_REVERT_IF_FAIL}
+opt_logs=${PLUGIN_LOGS_IF_FAIL}
 
 E_BAD_ARGS=13
 E_FAILED=20
@@ -55,6 +59,23 @@ releaseWatch() {
     kubectl rollout status $k8s_kind $k8s_object --namespace=$k8s_ns -w
 }
 
+# Print logs of containers in deployment
+printLogs() {
+    containers=( `kubectl get $k8s_kind $k8s_object -o=jsonpath='{.spec.template.spec.containers[*].name}'` )
+    pods=( `kubectl get pod -o name | grep -oE ${k8s_object}-'[a-zA-Z0-9-]+$'` )
+
+    for pod in ${pods[@]}
+    do
+        for container in ${containers[@]}
+        do
+            log_header="###\\n# $pod / $container\\n###\\n"
+            echo -e $log_header
+            kubectl logs $pod --container=$container
+            echo
+        done
+    done
+}
+
 # Rollback a release
 releaseRollBack() {
     kubectl rollout undo $k8s_kind $k8s_object --namespace=$k8s_ns
@@ -64,7 +85,7 @@ releaseRollBack() {
 # main()
 ###
 
-if [[ ${PLUGIN_DEBUG} = true ]]; then set -x; fi
+if [[ $opt_debug = true ]]; then set -x; fi
 if [[ ${#k8s_imgs[@]} != ${#k8s_cnts[@]} ]]; then exit $E_BAD_ARGS; fi
 if [[ ${#k8s_tags[@]} != ${#k8s_imgs[@]} && ${#k8s_tags[@]} != 1 ]]; then exit $E_BAD_ARGS; fi
 
@@ -73,8 +94,9 @@ updateImage || exit $E_DEPLOY
 releaseWatch
 
 release_status=$?
-if [[ $release_status != 0 && $release_status != 127 ]]
+if [[ $release_status != 0 && $release_status != 127 && $opt_revert = true ]]
 then
+    if [[ $opt_logs = true ]]; then printLogs; fi
     releaseRollBack
     exit $E_FAILED
 fi

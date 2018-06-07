@@ -57,6 +57,16 @@ kubectl rollout status deployment website --wait --namespace=$k8s_ns \
   || kubectl rollout undo deployment website --namespace=$k8s_ns
 ```
 
+Using secrets to store access credentials for kubernetes is now possible. Add the following pattern to your step (with corresponding secrets configured) to utilize them:
+
+```
+secrets:
+- k8s_ca
+- k8s_user
+- k8s_token
+- k8s_addr
+```
+
 ## Considerations
 
 Number of elements in arrays (img_cnts, img_names, img_tags) should always be the same.
