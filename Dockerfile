@@ -16,6 +16,7 @@ ENV PLUGIN_KIND="deployment" \
   PLUGIN_USER="admin" \
   PLUGIN_DEBUG=false \
   PLUGIN_REVERT_IF_FAIL=true \
-  PLUGIN_LOGS_IF_FAIL=true
+  PLUGIN_LOGS_IF_FAIL=true \
+  PLUGIN_ROLLOUT_TIMEOUT=10m
 
 ENTRYPOINT [ "bash", "/root/rollout.sh" ]

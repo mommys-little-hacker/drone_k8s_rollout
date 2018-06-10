@@ -21,6 +21,7 @@ k8s_tags=(${PLUGIN_IMG_TAGS//,/" "})
 opt_debug=${PLUGIN_DEBUG}
 opt_revert=${PLUGIN_REVERT_IF_FAIL}
 opt_logs=${PLUGIN_LOGS_IF_FAIL}
+opt_timeout=${PLUGIN_ROLLOUT_TIMEOUT}
 
 E_BAD_ARGS=13
 E_FAILED=20
@@ -56,7 +57,7 @@ updateImage() {
 
 # Watch release status
 releaseWatch() {
-    kubectl rollout status $k8s_kind $k8s_object --namespace=$k8s_ns -w
+    kubectl rollout status $k8s_kind $k8s_object --namespace=$k8s_ns -w --request-timeout=${opt_timeout}
 }
 
 # Print logs of containers in deployment

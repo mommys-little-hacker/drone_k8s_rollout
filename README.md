@@ -9,20 +9,26 @@ How it works:
 * Authorize in cluster
 * Update images for specified objects
 * Test if all new containers are up and running
-* Rollback if not
+* Print logs and rollback if not
 
 ## Usage
 
-* user - k8s API user. If you do not use RBAC, then it is most likely to be "admin";
+Default value is in brackets
+
+* user (admin) - k8s API user. If you do not use RBAC, then it is most likely to be "admin";
 * token - k8s API autorization token. Possible ways to obtain it are described later;
 * addr - k8s API server address. Possible ways to obtain it are described later;
 * ca - base64 encoded k8s API server CA certificate; You MUST specify it, as it will secure your communication with API;
-* kind - object type in kubernetes. Can be one of (but not limited to): deployment, statefulset, daemonset;
+* kind (deployment) - object type in kubernetes. Can be one of (but not limited to): deployment, statefulset, daemonset;
 * object - name of the object to be updated;
 * img_cnts - array of containers in k8s object to be updated;
 * img_names - array of container images to use. Must match the order of img_cnts;
 * img_tags - array of tags of images for update. Order must match with img_names;
-* namespace - k8s namespace
+* namespace - k8s namespace;
+* logs_if_fail (true) - print logs of containers if deployment failed to roll out;
+* revert_if_fail (true) - undo deployment if it failed to roll out;
+* rollout_timeout (10m) - timeout to wait until rollout is done;
+* debug (false) - enable debug mode.
 
 ## Example
 
@@ -53,11 +59,11 @@ This step translates into following commands (without authentication):
 
 ```
 kubectl set image deployment website dynamic=httpd:2.4.33 static=nginx:1.13.12 --namespace=$k8s_ns
-kubectl rollout status deployment website --wait --namespace=$k8s_ns \
+kubectl rollout status deployment website --wait --namespace=$k8s_ns --request-timeout=10m \
   || kubectl rollout undo deployment website --namespace=$k8s_ns
 ```
 
-Using secrets to store access credentials for kubernetes is now possible. Add the following pattern to your step (with corresponding secrets configured) to utilize them:
+Using secrets to store access credentials for kubernetes is possible. Add the following pattern to your step (with corresponding secrets configured) to utilize them:
 
 ```
 secrets:
@@ -78,3 +84,5 @@ All the necessary information can be found in your kubernetes config (typically,
 ```
 kops get secrets kube --type secret -oplaintext
 ```
+
+Enabling debug mode will print secrets to stdout, so everyone who has access to oyur server may see it.
