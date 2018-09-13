@@ -23,22 +23,63 @@ opt_revert=${PLUGIN_REVERT_IF_FAIL}
 opt_logs=${PLUGIN_LOGS_IF_FAIL}
 opt_timeout=${PLUGIN_ROLLOUT_TIMEOUT}
 
+###
+# Globs
+###
+
+log_path="stdout"
+
 E_BAD_ARGS=13
 E_FAILED=20
 E_AUTH=21
 E_DEPLOY=22
-E_WATCH=23
-E_ROLLBACK=24
+
+# Log messagae prefixes
+MSG_SUCCESS="Release successful!"
+MSG_AUTH="Using cluster"
+MSG_DEPLOY="Updating images for containers"
+
+MSG_E_BAD_ARGS="Invalid arguments. Uneven number of containers, images and tags."
+MSG_E_FAILED="Failed to release"
+MSG_E_AUTH="Failed to authorize in cluster"
+MSG_E_DEPLOY="Failed to deploy"
+
+###
+# Functions
+###
+
+# Logging function (KO to the rescue)
+logEvent() {
+    timestamp=`date -R`
+    log_msg="$@"
+
+    if [[ $log_path = "stdout" ]]
+    then
+        echo "[$timestamp] $log_msg"
+    else
+        echo "[$timestamp] $log_msg" >> $log_path
+    fi
+}
+
+# Panic function
+errorExit () {
+    exit_code=$1
+    shift
+    logEvent "$@"
+    exit $exit_code
+}
 
 # Authorize in k8s
 clusterAuth() {
     if [[ ! -d $conf_dir ]]; then mkdir $conf_dir; fi
     echo -n $k8s_ca | base64 -d > $conf_dir/cluster.crt
 
-    kubectl config set-credentials cluster --password=$k8s_pass --username=$k8s_user
-    kubectl config set-cluster cluster --server="$k8s_addr" --embed-certs=false --certificate-authority=$conf_dir/cluster.crt
-    kubectl config set-context cluster --user=cluster --cluster=cluster
-    kubectl config use-context cluster
+    kubectl config set-credentials cluster --password=$k8s_pass --username=$k8s_user > /dev/null
+    kubectl config set-cluster cluster --server="$k8s_addr" --embed-certs=false --certificate-authority=$conf_dir/cluster.crt > /dev/null
+    kubectl config set-context cluster --user=cluster --cluster=cluster > /dev/null
+    kubectl config use-context cluster > /dev/null
+
+    logEvent $MSG_AUTH "'$k8s_addr'"
 }
 
 # Update image of k8s object
@@ -49,9 +90,12 @@ updateImage() {
     until [[ $i = ${#k8s_cnts[@]} ]]
     do
         update_cmd="$update_cmd ${k8s_cnts[$i]}=${k8s_imgs[$i]}:${k8s_tags[$i]-latest}"
+        # A workaround to add container and image names to log message
+        MSG_DEPLOY="$MSG_DEPLOY ${k8s_cnts[$i]}=${k8s_imgs[$i]}:${k8s_tags[$i]-latest}"
         let i++
     done
 
+    logEvent $MSG_DEPLOY
     $update_cmd
 }
 
@@ -86,19 +130,26 @@ releaseRollBack() {
 # main()
 ###
 
+# Enable debug?
 if [[ $opt_debug = true ]]; then set -x; fi
+
+# Checking args
 if [[ ${#k8s_imgs[@]} != ${#k8s_cnts[@]} ]]; then exit $E_BAD_ARGS; fi
 if [[ ${#k8s_tags[@]} != ${#k8s_imgs[@]} && ${#k8s_tags[@]} != 1 ]]; then exit $E_BAD_ARGS; fi
 
-clusterAuth || exit $E_AUTH
-updateImage || exit $E_DEPLOY
+# Authorize and rollout
+clusterAuth || errorExit $E_AUTH $MSG_E_AUTH "$k8s_addr"
+updateImage || errorExit $E_DEPLOY $MSG_E_DEPLOY "$k8s_kind" "$k8s_object"
 releaseWatch
 
 release_status=$?
-if [[ $release_status != 0 && $release_status != 127 && $opt_revert = true ]]
+if [[ $release_status != 0 && $release_status != 127 ]]
 then
     if [[ $opt_logs = true ]]; then printLogs; fi
-    releaseRollBack
-    exit $E_FAILED
+    if [[ $opt_revert = true ]]; then releaseRollBack; fi
+    errorExit $E_FAILED $MSG_E_FAILED
+else
+    logEvent $MSG_SUCCESS
+    exit 0
 fi
 
