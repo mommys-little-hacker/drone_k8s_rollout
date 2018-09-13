@@ -1,4 +1,4 @@
-# drone_k8s_rollout
+# drone_setimage
 
 ## Descrption
 
@@ -8,12 +8,14 @@ How it works:
 
 * Authorize in cluster
 * Update images for specified objects
-* Test if all new containers are up and running
-* Print logs and rollback if not
+* Wait until release is over
+* Print logs and rollback if release fails
 
 ## Usage
 
-Default value is in brackets
+List of recognised parameters
+
+### parameter (default_value) - description
 
 * user (admin) - k8s API user. If you do not use RBAC, then it is most likely to be "admin";
 * token - k8s API autorization token. Possible ways to obtain it are described later;
@@ -36,7 +38,7 @@ The following example updates with fresh images the website deployment with 2 co
 
 ```
   deploy_to_k8s:
-    image: jackthestripper/drone_k8s_rollout
+    image: jackthestripper/drone_setimage
     user: admin
     token: 32tx2u6Y1rlD2sHcpxstCmP1m4taE1fb
     addr: https://api.k8s.example.com
@@ -79,7 +81,7 @@ Number of elements in arrays (img_cnts, img_names, img_tags) should always be th
 
 CA certificate is mandatory to secure communication with server. No, I will not add an option to allow insecure communication.
 
-All the necessary information can be found in your kubernetes config (typically, ~/.kube/config). You can also kops to get API token:
+All the necessary information can be found in your kubernetes config (typically, ~/.kube/config). You can also use kops to get API token:
 
 ```
 kops get secrets kube --type secret -oplaintext
