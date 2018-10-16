@@ -1,6 +1,6 @@
 # drone_setimage
 
-## Descrption
+## Description
 
 Drone.io plugin to perform secure releases to Kubernetes.
 
